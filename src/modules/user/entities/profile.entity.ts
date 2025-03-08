@@ -1,18 +1,22 @@
 import { BaseEntity } from "src/common/entity/base.entity";
-import { EntityName } from "src/common/enums/entityName.enum";
-import { Column, Entity, OneToOne } from "typeorm";
+import { Column, Entity, OneToOne, JoinColumn } from "typeorm";
 import { UserEntity } from "./user.entity";
 
-@Entity(EntityName.UserProfile)
+@Entity("user-profile")
 export class ProfileEntity extends BaseEntity {
-    @Column({nullable: true})
+    @Column({ nullable: true })
     nationalCode: string;
-    @Column({nullable: true})
+
+    @Column({ nullable: true })
     gender: string;
-    @Column({nullable: true})
+
+    @Column({ nullable: true })
     birth: Date;
-    @Column({nullable: true})
+
+    @Column({ nullable: true })
     email: string;
+
     @OneToOne(() => UserEntity, (user) => user.profile)
-    user: UserEntity 
+    @JoinColumn({ name: 'user_id' }) // مشخص کردن مالک رابطه
+    user: UserEntity;
 }
