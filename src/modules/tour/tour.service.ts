@@ -7,7 +7,6 @@ import {
 import { CreateTourDto } from "./dto/create-tour.dto";
 import { UpdateTourDto } from "./dto/update-tour.dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { TourEntity } from "./entities/tour.entity";
 import { DeepPartial, Repository } from "typeorm";
 import { validate } from "class-validator";
 import { json } from "stream/consumers";
@@ -19,6 +18,8 @@ import {
   paginationGenerator,
   paginationSolver,
 } from "src/common/utils/pagination.util";
+import { TourEntity } from "./entities/tour.entity";
+import { UserEntity } from "../user/entities/user.entity";
 
 @Injectable()
 export class TourService {
@@ -28,7 +29,7 @@ export class TourService {
     private s3Service: S3Service
   ) {}
 
-  private generateSlug(title: string): string {
+   generateSlug(title: string): string {
     return slugify(title, {
       lower: true,
       replacement: "-",
@@ -39,17 +40,26 @@ export class TourService {
 
   async create(
     createTourDto: CreateTourDto,
-    image: Express.Multer.File
+    images: Express.Multer.File[],
   ): Promise<TourEntity> {
     const errors = await validate(createTourDto);
     if (errors.length > 0) {
       console.error(errors);
       throw new BadRequestException("مقادیر ورودی نامعتبر");
     }
-    const { Location, Key } = await this.s3Service.uploadFile(
-      image,
-      "torino-tour-image"
-    );
+
+    const imageLocations = [];
+    const imageKeys = [];
+
+    for (const image of images) {
+      const { Location, Key } = await this.s3Service.uploadFile(
+        image,
+        "torino-tour-image"
+      );
+      imageLocations.push(Location);
+      imageKeys.push(Key);
+    }
+
     const existingTour = await this.tourRepository.findOneBy({
       title: createTourDto.title,
     });
@@ -57,12 +67,13 @@ export class TourService {
       throw new ConflictException("تور از قبل وجود دارد ❌");
     }
 
-    createTourDto.slug = this.generateSlug(createTourDto.title);
-
+    if(!createTourDto.slug) {
+      createTourDto.slug = this.generateSlug(createTourDto.title)
+    }
     const tour = this.tourRepository.create({
       ...createTourDto,
-      image: Location,
-      imageKey: Key,
+      images: imageLocations.join(','),
+      imageKeys: imageKeys.join(','),
       slug: sanitizeSlug(createTourDto.slug),
       start_date: new Date(createTourDto.start_date),
       end_date: new Date(createTourDto.end_date),
@@ -71,9 +82,10 @@ export class TourService {
     try {
       return await this.tourRepository.save(tour);
     } catch (error) {
-      throw new BadRequestException("حطا در ایجاد تور", error.message);
+      throw new BadRequestException("خطا در ایجاد تور", error.message);
     }
   }
+  
 
   async findAll(pagination: PaginationDto) {
     const { limit, page, skip } = paginationSolver(
@@ -90,7 +102,7 @@ export class TourService {
         "tour.title",
         "tour.description",
         "tour.slug",
-        "tour.image",
+        "tour.images",
         "tour.origin",
         "tour.destination",
         "tour.start_date",
@@ -113,9 +125,26 @@ export class TourService {
   }
 
   async findOne(id: number) {
-    const tour = await this.tourRepository.findOneBy({ id });
+    const tour = await this.tourRepository.findOne({
+      where: {id},
+      relations: {
+        comments: {user: true}
+      },
+      select: {
+        comments: {
+          id: true,
+          text: true,
+          user: {
+            firstname: true
+          }
+        },
+        
+      }
+    });
     if (!tour) throw new NotFoundException("tour not found !");
-    return tour;
+    return {
+      tour
+    };
   }
 
   async findOneBySlug(slug: string) {
@@ -126,10 +155,18 @@ export class TourService {
     return tour;
   }
 
+  async checkTourById(id:number) {
+    const tour = await this.tourRepository.findOneBy({id});
+    if(!tour) {
+      throw new NotFoundException("not found tour !");
+    }
+    return tour;
+  }
+
   async update(
     id: number,
     updateTourDto: UpdateTourDto,
-    image: Express.Multer.File
+    images: Express.Multer.File[], 
   ) {
     const {
       title,
@@ -145,29 +182,42 @@ export class TourService {
       status,
       transport_type,
     } = updateTourDto;
-    const tour = await this.findOne(id);
+  
+    const tour = await this.checkTourById(id);
     const updateTourObject: DeepPartial<TourEntity> = {};
-    if (image) {
-      const { Location, Key } = await this.s3Service.uploadFile(
-        image,
-        "torino-tour-image"
-      );
-      if (Location) {
-        (updateTourObject["image"] = Location),
-          (updateTourObject["imageKey"] = Key);
-        if (tour?.imageKey) {
-          await this.s3Service.deleteFile(tour?.imageKey);
+  
+    if (images && images.length > 0) {
+      const imageLocations = [];
+      const imageKeys = [];
+  
+      for (const image of images) {
+        const { Location, Key } = await this.s3Service.uploadFile(
+          image,
+          "torino-tour-image"
+        );
+        imageLocations.push(Location);
+        imageKeys.push(Key);
+      }
+  
+      updateTourObject["images"] = imageLocations.join(',');
+      updateTourObject["imageKeys"] = imageKeys.join(',');
+  
+      if (tour?.imageKeys) {
+        const oldImageKeys = tour.imageKeys.split(',');
+        for (const key of oldImageKeys) {
+          await this.s3Service.deleteFile(key);
         }
       }
     }
-
+  
     if (title) updateTourObject["title"] = title;
     if (capacity) updateTourObject["capacity"] = capacity;
     if (slug) {
-      const tour = await this.tourRepository.findOneBy({ slug });
-      if (tour && tour.id !== id)
-        throw new ConflictException("already exist category slug");
-      updateTourObject["slug"] = slug;
+      const existingTour = await this.tourRepository.findOneBy({ slug });
+      if (existingTour && existingTour.id !== id) {
+        throw new ConflictException("اسلاگ تور از قبل وجود دارد ❌");
+      }
+      updateTourObject["slug"] = sanitizeSlug(slug);
     }
     if (end_date) updateTourObject["end_date"] = end_date;
     if (start_date) updateTourObject["start_date"] = start_date;
@@ -178,23 +228,30 @@ export class TourService {
     if (insurance) updateTourObject["insurance"] = insurance;
     if (status) updateTourObject["status"] = status;
     if (transport_type) updateTourObject["transport_type"] = transport_type;
-
+  
     await this.tourRepository.update({ id }, updateTourObject);
-    const newTour = await this.tourRepository.findOneBy({ id });
+    const updatedTour = await this.tourRepository.findOneBy({ id });
+  
     return {
-      message: "tour Updated successfully ✅",
-      newTour,
+      message: "تور با موفقیت به‌روزرسانی شد ✅",
+      updatedTour,
     };
   }
 
   async remove(id: number) {
-    const tour = await this.findOne(id);
-    if (tour.imageKey) {
-      await this.s3Service.deleteFile(tour.imageKey);
+    const tour = await this.checkTourById(id)
+  
+    if (tour.imageKeys) {
+      const imageKeys = tour.imageKeys.split(',');
+      for (const key of imageKeys) {
+        await this.s3Service.deleteFile(key);
+      }
     }
+  
     await this.tourRepository.delete({ id });
+  
     return {
-      message: "Tour deleted successfully ✅",
+      message: "تور با موفقیت حذف شد ✅",
     };
   }
 }

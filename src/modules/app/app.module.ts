@@ -6,6 +6,8 @@ import { JwtService } from "@nestjs/jwt";
 import { TourModule } from "../tour/tour.module";
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "../auth/auth.module";
+import { CommentModule } from "../comment/comment.module";
+import { BlogModule } from "../blog/blog.module";
 config();
 
 @Module({
@@ -17,6 +19,8 @@ config();
     }),
     AuthModule,
     TourModule,
+    BlogModule,
+    CommentModule,
   ],
   controllers: [],
   providers: [],

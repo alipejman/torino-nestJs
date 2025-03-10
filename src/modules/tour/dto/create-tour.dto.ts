@@ -1,13 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { IsString, IsDateString, IsEnum, IsNumber, IsBoolean, IsArray, ValidateNested, IsOptional } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import { TourStatusEnum, TransportEnum } from "../enum/tour.enum";
-import {
-  IsString,
-  IsDateString,
-  IsEnum,
-  IsNumber,
-  IsBoolean,
-} from 'class-validator';
-import { Transform } from 'class-transformer';
 
 export class CreateTourDto {
   @ApiProperty()
@@ -22,8 +16,12 @@ export class CreateTourDto {
   @IsString()
   slug: string;
 
-  @ApiProperty({ format: "binary" })
-  image: string;
+  @ApiProperty({ type: 'array', items: { type: 'string', format: 'binary' } })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Object)
+  @IsOptional()
+  images?: Express.Multer.File[];
 
   @ApiProperty()
   @IsString()
@@ -34,32 +32,16 @@ export class CreateTourDto {
   destination: string;
 
   @ApiProperty()
-  @IsDateString()
-  @Transform(({ value }) => {
-    const date = new Date(value);
-    if (isNaN(date.getTime())) {
-      throw new Error('Invalid date format for start_date');
-    }
-    return date.toISOString();
-  })
-  start_date: Date;
-
+  @IsString()
+  @Transform(({ value }) => new Date(value).toISOString()) // تبدیل به ISO 8601
+  start_date: Date; // یا Date
+  
   @ApiProperty()
-  @IsDateString()
-  @Transform(({ value }) => {
-    const date = new Date(value);
-    if (isNaN(date.getTime())) {
-      throw new Error('Invalid date format for end_date');
-    }
-    return date.toISOString();
-  })
-  end_date: Date;
+  @IsString()
+  @Transform(({ value }) => new Date(value).toISOString()) // تبدیل به ISO 8601
+  end_date: Date; // یا Date
 
-  @ApiProperty({
-    format: "enum",
-    enum: TransportEnum,
-    default: TransportEnum.Buss,
-  })
+  @ApiProperty({ enum: TransportEnum, default: TransportEnum.Buss })
   @IsEnum(TransportEnum)
   transport_type: TransportEnum;
 
@@ -77,11 +59,7 @@ export class CreateTourDto {
   @IsString()
   leader: string;
 
-  @ApiProperty({
-    format: "enum",
-    enum: TourStatusEnum,
-    default: TourStatusEnum.InProgress,
-  })
+  @ApiProperty({ enum: TourStatusEnum, default: TourStatusEnum.InProgress })
   @IsEnum(TourStatusEnum)
   status: TourStatusEnum;
 }
