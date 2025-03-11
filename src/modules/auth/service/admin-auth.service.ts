@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -76,19 +77,39 @@ export class AdminAuthService {
   async login(adminLoginDto: AdminLoginDto) {
     const { username, password } = adminLoginDto;
     try {
-      const admin = await this.adminRepository.findOne({
-        where: { username },
-      });
+      const admin = await this.adminRepository.findOneBy({username});
+  
       if (!admin) {
         throw new BadRequestException("invalid username or password!");
       }
+  
+      if (admin.bannedUntil && admin.bannedUntil > new Date()) {
+        const remainingTime = Math.ceil((admin.bannedUntil.getTime() - new Date().getTime()) / 1000 / 60);
+        throw new UnauthorizedException(`Account is banned. Try again in ${remainingTime} minutes.`);
+      }
+  
       const isPasswordValid = await bcrypt.compare(password, admin.password);
+  
       if (!isPasswordValid) {
+        admin.failedAttempts += 1;
+  
+        if (admin.failedAttempts >= 2) {
+          admin.bannedUntil = new Date(Date.now() + 2 * 60 * 1000);
+          admin.failedAttempts = 0;
+        }
+  
+        await this.adminRepository.save(admin);
         throw new BadRequestException("invalid username or password!");
       }
+  
+      admin.failedAttempts = 0;
+      admin.bannedUntil = null;
+      await this.adminRepository.save(admin);
+  
       const token = this.generateToken(admin);
+  
       return {
-        message: "login successfult ✅",
+        message: "login successful ✅",
         admin: {
           username: admin.username,
         },
@@ -118,21 +139,21 @@ export class AdminAuthService {
     const decoded = this.jwtService.verify(token, {
       secret: process.env.ACCESS_TOKEN_SECRET,
     });
-  
+
     if (decoded.type !== "admin") {
       throw new UnauthorizedException("Invalid token type");
     }
-  
+
     const adminId = decoded.id;
     const admin = await this.adminRepository.findOne({
       where: { id: adminId },
       relations: ["role"],
     });
-  
+
     if (!admin) {
       throw new UnauthorizedException("Admin not found");
     }
-  
+
     return [admin.role.name];
   }
 
@@ -145,7 +166,7 @@ export class AdminAuthService {
         const admin = await this.adminRepository.findOneBy({
           id: payload.id,
         });
-        
+
         if (!admin) {
           throw new UnauthorizedException("login on your account ");
         }
