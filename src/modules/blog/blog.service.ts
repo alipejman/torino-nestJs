@@ -96,26 +96,36 @@ export class BlogService {
 
   async findOne(id: number) {
     const blog = await this.blogRepository.findOne({
-      where: {id},
-      relations: {
-        comments: {user: true}
-      },
-      select: {
-        comments: {
-          id: true,
-          text: true,
-          user: {
-            firstname: true
+        where: { id },
+        relations: {
+          comments: {
+            user: {
+              profile: true
+            }
           }
         },
-        
-      }
+        select: {
+            id: true,
+            comments: {
+                id: true,
+                text: true,
+                user: {
+                  id: true,
+                  profile: {
+                    firstname:true,
+                    lastname: true
+                  }
+                }
+            },
+        },
     });
+
     if (!blog) throw new NotFoundException("blog not found !");
     return {
-      blog
+        blog,
     };
-  }
+}
+
 
   async findOneBySlug(slug: string) {
     const blog = await this.blogRepository.findOne({

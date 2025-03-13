@@ -7,12 +7,6 @@ import { CommentEntity } from "src/modules/comment/entities/comment.entity";
 
 @Entity("users")
 export class UserEntity extends BaseEntity {
-  @Column({ nullable: true })
-  firstname: string;
-
-  @Column({ nullable: true })
-  lastname: string;
-
   @Column({ unique: true })
   phone: string;
 

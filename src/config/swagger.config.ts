@@ -13,7 +13,7 @@ export function swaggerConfigInit(app: INestApplication) {
     const theme = new SwaggerTheme();
   const options = {
     explorer: true,
-    customCss: theme.getBuffer(SwaggerThemeNameEnum.MATERIAL)
+    customCss: theme.getBuffer(SwaggerThemeNameEnum.default)
   };
     const swaggerDocument = SwaggerModule.createDocument(app, document);
     SwaggerModule.setup("/api", app, swaggerDocument, options)

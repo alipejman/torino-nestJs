@@ -14,7 +14,7 @@ async function bootstrap() {
   swaggerConfigInit(app);
   app.use(bodyParser.json({ limit: "1mb" })); 
   app.use(bodyParser.urlencoded({ limit: "1mb", extended: true }));
-  const { PORT = 8080 } = process.env;
+  const { PORT = 2500 } = process.env;
   await app.listen(PORT, () => {
     console.log(
       `Server Is Running On Port : ${PORT} : http://localhost:${PORT}`

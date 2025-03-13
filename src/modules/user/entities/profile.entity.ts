@@ -5,6 +5,12 @@ import { UserEntity } from "./user.entity";
 @Entity("user-profile")
 export class ProfileEntity extends BaseEntity {
     @Column({ nullable: true })
+    firstname: string;
+  
+    @Column({ nullable: true })
+    lastname: string;
+  
+    @Column({nullable: true, unique: true })
     nationalCode: string;
 
     @Column({ nullable: true })
@@ -13,10 +19,10 @@ export class ProfileEntity extends BaseEntity {
     @Column({ nullable: true })
     birth: Date;
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, unique: true })
     email: string;
 
     @OneToOne(() => UserEntity, (user) => user.profile)
-    @JoinColumn({ name: 'user_id' }) // مشخص کردن مالک رابطه
+    @JoinColumn({ name: 'user_id' })
     user: UserEntity;
 }

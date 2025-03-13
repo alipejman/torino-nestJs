@@ -128,14 +128,20 @@ export class TourService {
     const tour = await this.tourRepository.findOne({
       where: {id},
       relations: {
-        comments: {user: true}
+        comments: {user: {
+          profile: true
+        }}
       },
       select: {
         comments: {
           id: true,
           text: true,
           user: {
-            firstname: true
+            id: true,
+            profile: {
+              firstname: true,
+              lastname: true
+            }
           }
         },
         
@@ -147,8 +153,31 @@ export class TourService {
     };
   }
 
-  async findOneBySlug(slug: string) {
-    const tour = await this.tourRepository.findOneBy({ slug });
+    async findOneBySlug(slug: string) {
+        const tour = await this.tourRepository.findOne({
+            where: { slug },
+            relations: {
+                comments: {
+                    user: {
+                        profile: true,
+                    }
+                }
+            },
+            select: {
+                id: true,
+                comments: {
+                    id: true,
+                    text: true,
+                    user: {
+                        id: true,
+                        profile: {
+                            firstname: true,
+                            lastname: true,
+                        }
+                    }
+                }
+            }
+        })
     if (!tour) {
       throw new NotFoundException("tour not found !");
     }
