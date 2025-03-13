@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, Length, Matches, Validate } from "class-validator";
+import { IsEmail, IsString, Length, Matches, Validate } from "class-validator";
 import { Transform } from "class-transformer";
 import { IsIranianNationalCode } from "src/common/decorators/is-iranian-national-code.decorator";
+import { Gender } from "src/common/enums/gender.enum";
 
 export class CreatePersonalInfoDto {
     @ApiProperty()
@@ -18,6 +19,19 @@ export class CreatePersonalInfoDto {
     @Transform(({ value }) => String(value))
     nationalCode: string;
 
+    @ApiProperty({
+        enum: Gender,
+        description:"Gender Of the User"
+    })
+    gender: Gender;
+
     @ApiProperty()
     birth: Date;
 }
+
+export class SetMailDto {
+    @ApiProperty()
+    @IsEmail({}, { message: "email must be a valid email address" })
+    email: string;
+}
+

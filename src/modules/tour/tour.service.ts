@@ -164,7 +164,6 @@ export class TourService {
                 }
             },
             select: {
-                id: true,
                 comments: {
                     id: true,
                     text: true,

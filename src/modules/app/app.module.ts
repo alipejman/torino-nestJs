@@ -9,6 +9,7 @@ import { AuthModule } from "../auth/auth.module";
 import { CommentModule } from "../comment/comment.module";
 import { BlogModule } from "../blog/blog.module";
 import { UserModule } from "../user/user.module";
+import { BannerModule } from "../banner/banner.module";
 config();
 
 @Module({
@@ -23,6 +24,7 @@ config();
     TourModule,
     BlogModule,
     CommentModule,
+    BannerModule,
   ],
   controllers: [],
   providers: [],

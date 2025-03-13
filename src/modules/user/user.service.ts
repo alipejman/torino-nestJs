@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException, Scope } fro
 import { InjectRepository } from "@nestjs/typeorm";
 import { ProfileEntity } from "./entities/profile.entity";
 import { Repository } from "typeorm";
-import { CreatePersonalInfoDto } from "./dto/profile.dto";
+import { CreatePersonalInfoDto, SetMailDto } from "./dto/profile.dto";
 import { REQUEST } from "@nestjs/core";
 import { Request } from "express";
 import { UserEntity } from "./entities/user.entity";
@@ -17,9 +17,27 @@ export class UserService {
     @InjectRepository(UserEntity) private userRepository:Repository<UserEntity>,
   ) {}
 
+
+  async getUserProfile() {
+    try {
+        const { id } = this.request.user;
+        const user = await this.userRepository.findOne({
+            where: { id },
+            relations: ["profile"],
+        });
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+        return user.profile;
+    } catch (error) {
+        throw new BadRequestException(error?.message);
+        
+    }
+  }
+
   async addPersonalInfo(createPersonalINfoDto: CreatePersonalInfoDto) {
     try {
-        const { firstname, lastname, nationalCode, birth } = createPersonalINfoDto;
+        const { firstname, lastname, nationalCode, birth, gender } = createPersonalINfoDto;
 
         const errors = await validate(createPersonalINfoDto);
         if (errors.length > 0) {
@@ -42,6 +60,7 @@ export class UserService {
             personalInfo.lastname = lastname;
             personalInfo.nationalCode = nationalCode;
             personalInfo.birth = birth;
+            personalInfo.gender = gender
 
             await this.profileRepository.save(personalInfo);
         } else {
@@ -50,7 +69,8 @@ export class UserService {
                 lastname,
                 nationalCode,
                 birth,
-                user
+                user,
+                gender
             });
             await this.profileRepository.save(personalInfo);
         }
@@ -65,5 +85,31 @@ export class UserService {
     }
 }
 
+    async setEmail(setEmailDto: SetMailDto) {
+        try {
+            const { email } = setEmailDto;
+            const errors = await validate(setEmailDto);
+            if (errors.length > 0) {
+                console.error(errors);
+                throw new BadRequestException("مقادیر ورودی نامعتبر");
+            }
 
+            const { id } = this.request.user;
+            const user = await this.userRepository.findOne({
+                where: { id },
+                relations: ["profile"],
+            })
+            if (!user) {
+                throw new NotFoundException("User not found");
+            }
+
+            user.profile.email = email;
+            await this.profileRepository.save(user.profile);
+            return {
+                message: "Email successfully was registered/updated✅"
+            };
+        } catch (error) {
+            throw new BadRequestException(error?.message);
+        }
+    }
 }
