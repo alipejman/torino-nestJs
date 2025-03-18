@@ -4,6 +4,7 @@ import { ProfileEntity } from "./profile.entity";
 import { OtpEntity } from "./otp.entity";
 import { RoleEntity } from "src/modules/auth/rbac/entity/role.entity";
 import { CommentEntity } from "src/modules/comment/entities/comment.entity";
+import { ReserveEntity } from "src/modules/reserve/entities/reserve.entity";
 
 @Entity("users")
 export class UserEntity extends BaseEntity {
@@ -16,10 +17,11 @@ export class UserEntity extends BaseEntity {
   @Column({ default: false })
   verified: boolean;
 
-  @OneToOne(() => ProfileEntity, (profile) => profile.user, {
-    onDelete: "CASCADE",
-  })
-  @JoinColumn({ name: "profileId" })
+  @Column({nullable: true})
+  profileId: number;
+
+  @OneToOne(() => ProfileEntity, (profile) => profile.user, { cascade: true })
+  @JoinColumn({name: "profileId"})
   profile: ProfileEntity;
 
   @OneToOne(() => OtpEntity, (otp) => otp.user)
@@ -32,4 +34,7 @@ export class UserEntity extends BaseEntity {
 
   @OneToMany(() => CommentEntity, comment => comment.user)
   comments: CommentEntity[];
+
+  @OneToMany(() => ReserveEntity, (reserve) => reserve.user)
+  reservation: ReserveEntity[]
 }

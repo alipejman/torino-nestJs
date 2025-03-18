@@ -10,6 +10,7 @@ import { CommentModule } from "../comment/comment.module";
 import { BlogModule } from "../blog/blog.module";
 import { UserModule } from "../user/user.module";
 import { BannerModule } from "../banner/banner.module";
+import { ReserveModule } from "../reserve/reserve.module";
 config();
 
 @Module({
@@ -22,6 +23,7 @@ config();
     AuthModule,
     UserModule,
     TourModule,
+    ReserveModule,
     BlogModule,
     CommentModule,
     BannerModule,

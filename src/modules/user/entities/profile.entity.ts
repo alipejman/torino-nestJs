@@ -22,7 +22,10 @@ export class ProfileEntity extends BaseEntity {
     @Column({ nullable: true, unique: true })
     email: string;
 
+    @Column({nullable:true})
+    userId: number;
+
     @OneToOne(() => UserEntity, (user) => user.profile)
-    @JoinColumn({ name: 'user_id' })
+    @JoinColumn({ name: 'userId' })
     user: UserEntity;
 }

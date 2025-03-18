@@ -109,6 +109,7 @@ export class TourService {
         "tour.end_date",
         "tour.transport_type",
         "tour.capacity",
+        "tour.reserved",
         "tour.insurance",
         "tour.leader",
         "tour.status",

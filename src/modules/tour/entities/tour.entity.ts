@@ -1,7 +1,8 @@
 import { BaseEntity } from "src/common/entity/base.entity";
-import { Column, Entity, OneToMany } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany } from "typeorm";
 import { TourStatusEnum, TransportEnum } from "../enum/tour.enum";
 import { CommentEntity } from "src/modules/comment/entities/comment.entity";
+import { ReserveEntity } from "src/modules/reserve/entities/reserve.entity";
 
 @Entity("tour")
 export class TourEntity extends BaseEntity {
@@ -15,10 +16,10 @@ export class TourEntity extends BaseEntity {
   slug: string;
 
   @Column({ nullable: true })
-  images: string; // ذخیره به عنوان رشته‌ی جدا شده با کاما (مثال: "url1,url2,url3")
+  images: string; 
 
   @Column({ nullable: true })
-  imageKeys: string; // ذخیره به عنوان رشته‌ی جدا شده با کاما (مثال: "key1,key2,key3")
+  imageKeys: string;
 
   @Column()
   origin: string;
@@ -42,11 +43,18 @@ export class TourEntity extends BaseEntity {
   @Column()
   capacity: number;
 
+  @Column({nullable: true, default: 0})
+  reserved: number;
+
   @Column({ default: true })
   insurance: boolean;
 
   @Column()
   leader: string;
+
+  @Column("decimal", { precision: 10 , nullable: true})
+  price: number;
+
 
   @Column({
     type: "enum",
@@ -57,4 +65,10 @@ export class TourEntity extends BaseEntity {
 
   @OneToMany(() => CommentEntity, (comment) => comment.tour)
   comments: CommentEntity[]
+
+  @Column({nullable: true})
+  reservationId: number;
+  @OneToMany(() => ReserveEntity, (reserve) => reserve.tour, {nullable: true})
+  @JoinColumn({name: "reservationId"})
+  reservation: ReserveEntity[]
 }

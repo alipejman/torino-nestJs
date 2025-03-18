@@ -19,5 +19,11 @@ namespace NodeJS {
     S3_ACCESS_KEY: string;
     S3_BUCKET_NAME: string;
     S3_ENDPOINT: string;
+
+    //Zarinnpal
+    ZARINPAL_VERIFY_URL: string;
+    ZARINPAL_REQUEST_URL: string;
+    ZARINPAL_GATEWAY_URL: string;
+    ZARINPAL_MERCHANT_ID: number;
   }
 }

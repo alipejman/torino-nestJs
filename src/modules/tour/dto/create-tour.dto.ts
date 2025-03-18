@@ -32,6 +32,9 @@ export class CreateTourDto {
   destination: string;
 
   @ApiProperty()
+  price: number;
+
+  @ApiProperty()
   @IsString()
   @Transform(({ value }) => new Date(value).toISOString()) // تبدیل به ISO 8601
   start_date: Date; // یا Date
