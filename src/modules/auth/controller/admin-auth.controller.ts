@@ -25,13 +25,4 @@ export class AdminAuthController {
     return this.adminAuthService.login(adminLoginDto);
   }
 
-  @Get("for-admins")
-  @ApiBearerAuth("Authorization")
-  @Roles("admin", "accountant")
-  @AdminAuth()
-  forAdmins() {
-    return {
-      message: "this data for admins ✅",
-    };
-  }
 }

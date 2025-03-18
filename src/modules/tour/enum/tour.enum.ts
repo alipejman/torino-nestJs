@@ -7,4 +7,5 @@ export enum TransportEnum {
 export enum TourStatusEnum {
   Finished = "به اتمام رسیده",
   InProgress = "در حال برگذاری",
+  complete = "اتمام ظرفیت",
 }

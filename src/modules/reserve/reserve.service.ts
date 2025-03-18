@@ -137,7 +137,7 @@ export class ReserveService {
     }
   }
 
-  private async checkReserveForCreate(userId: number, tourId: number) {
+  private async checkExistingReserve(userId:number, tourId: number) {
     try {
       const existingReserve  = await this.reserveRepository.findOne({
         where: {
@@ -149,6 +149,20 @@ export class ReserveService {
       if (existingReserve) {
         throw new BadRequestException("you already reserved this tour !");
       }
+      if (!existingReserve) {
+        return;
+      };
+      return;
+  
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException(error?.message)
+      
+    }
+  }
+
+  private async checkPendingReserve(userId:number, tourId:number) {
+    try {
       const pendingReserve  = await this.reserveRepository.findOne({
         where: {
           userId: userId,
@@ -159,16 +173,38 @@ export class ReserveService {
       if (pendingReserve) {
         throw new BadRequestException("you already added to reserve list !");
       }
-
-      if (!existingReserve || !pendingReserve) {
+      if (!pendingReserve) {
         return;
       }
+      return;
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException(error?.message)
+      
+    }
+  }
+
+
+  private async checkPassengerForTour(passengerId: number, tourId: number) {
+    try {
+      const existingReserve = await this.reserveRepository.findOne({
+        where: {
+          passengerId: passengerId,
+          tourId: tourId,
+          reserveStatus: ReserveStatus.Reserved,
+        },
+      });
+      if (existingReserve) {
+        throw new BadRequestException("You have already registered for this tour!");
+      }
+  
       return;
     } catch (error) {
       console.log(error);
       throw new BadRequestException(error?.message);
     }
   }
+  
 
   async create(createReserveDto: CreateReserveDto) {
     try {
@@ -181,7 +217,9 @@ export class ReserveService {
       if (tour.status === TourStatusEnum.Finished) {
         throw new BadRequestException("tour is finished !");
       }
-      await this.checkReserveForCreate(userId, tourId);
+      await this.checkPendingReserve(userId, tourId);
+      await this.checkExistingReserve(userId, tourId);
+      await this.checkPassengerForTour(userId, tourId);
 
       const newReserve = await this.reserveRepository.create({
         reserveStatus: ReserveStatus.Pending,
@@ -222,6 +260,7 @@ export class ReserveService {
 
   async confirm(reserveId: number, confirmPassengerDto: ConfirmPassengerDto) {
     try {
+      const {id: userId} = this.request.user;
       const reserve = await this.findOneReserve(reserveId);
       const passengerDto =
         await this.findPassengerAndCreate(confirmPassengerDto);
@@ -235,8 +274,9 @@ export class ReserveService {
         newProfile,
         newUser,
       } = passengerDto;
-      console.log(reserve);
-
+      
+      await this.checkExistingReserve(userId, reserve.tourId);
+      await this.checkPassengerForTour(userId, reserve.tourId);
       if (
         reserve.reserveStatus === ReserveStatus.Cancelled ||
         reserve.reserveStatus === ReserveStatus.Failed
@@ -256,8 +296,10 @@ export class ReserveService {
       reserve.passengerId = newUser;
       reserve.reserveStatus = ReserveStatus.Reserved;
       reserve.transactionId = newTransaction.id;
-      reserve.tour.reservationId = reserve.id;
-      await this.tourRepository.save;
+      if(reserve.tour.reserved === reserve.tour.capacity) {
+        reserve.tour.status = TourStatusEnum.complete;
+      }
+      await this.tourRepository.save(reserve.tour);
       await this.reserveRepository.save(reserve);
       return {
         message: "tour successfully reserved ✅",

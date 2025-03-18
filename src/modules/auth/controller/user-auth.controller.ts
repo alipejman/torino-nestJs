@@ -27,14 +27,4 @@ export class UserAuthController {
     checkOtp(@Body() userCheckOtpDto: UserCheckOtpDto) {
         return this.userAuthService.checkOtp(userCheckOtpDto);
     }
-
-    @Get("/hidden-files")
-    @ApiBearerAuth("Authorization")
-    @Roles("user")
-    @UserAuth()
-    getHidden() {
-        return {
-            message: "this is resource for users ✅"
-        }
-    }
 }

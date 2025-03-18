@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, Req, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, Req, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { ApiBearerAuth, ApiConsumes, ApiTags } from "@nestjs/swagger";
 import { CreatePersonalInfoDto, SetMailDto } from "./dto/profile.dto";
@@ -18,6 +18,14 @@ export class UserController {
   getUserProfile() {
     return this.userService.getUserProfile();
   }
+
+  // @Get("/my-tours/:id")
+  // @Roles("user")
+  // @UseGuards(RolesGuard)
+  // @UserAuth()
+  // getUserTour(@Param("id", ParseIntPipe) id: number) {
+  //   return this.userService.getUserTour(id)
+  // }
 
 
   @Put("/personal-info")
