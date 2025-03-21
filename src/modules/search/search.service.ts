@@ -1,26 +1,46 @@
-import { Injectable } from '@nestjs/common';
-import { CreateSearchDto } from './dto/create-search.dto';
-import { UpdateSearchDto } from './dto/update-search.dto';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { SearchDto } from './dto/create-search.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { TourEntity } from '../tour/entities/tour.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class SearchService {
-  create(createSearchDto: CreateSearchDto) {
-    return 'This action adds a new search';
+  constructor(
+    @InjectRepository(TourEntity) private tourRepository:Repository<TourEntity>
+  ) {}
+
+  async create(searchDto: SearchDto) {
+    try {
+      const {origin, destination, start_date} = searchDto;
+
+
+    const query = await this.tourRepository.createQueryBuilder("tour");
+    if(origin) {
+      query.andWhere('tour."origin" = :origin', {origin})
+    }
+
+    if(destination) {
+      query.andWhere('tour."destination" = :destination', {destination})
+    }
+
+    if(start_date) {
+      query.andWhere('tour."start_date" = :start_date', {start_date})
+    }
+
+    const tours = await query.getMany();
+
+    if(tours.length === 0) {
+      throw new NotFoundException("tour is not found!")
+    }
+
+    return tours;
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException(error?.message);
+      
+    }
   }
 
-  findAll() {
-    return `This action returns all search`;
-  }
 
-  findOne(id: number) {
-    return `This action returns a #${id} search`;
-  }
-
-  update(id: number, updateSearchDto: UpdateSearchDto) {
-    return `This action updates a #${id} search`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} search`;
-  }
 }

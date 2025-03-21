@@ -11,6 +11,7 @@ import { BlogModule } from "../blog/blog.module";
 import { UserModule } from "../user/user.module";
 import { BannerModule } from "../banner/banner.module";
 import { ReserveModule } from "../reserve/reserve.module";
+import { SearchModule } from "../search/search.module";
 config();
 
 @Module({
@@ -22,6 +23,7 @@ config();
     }),
     AuthModule,
     UserModule,
+    SearchModule,
     TourModule,
     ReserveModule,
     BlogModule,
