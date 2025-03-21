@@ -19,13 +19,22 @@ export class UserController {
     return this.userService.getUserProfile();
   }
 
-  // @Get("/my-tours/:id")
-  // @Roles("user")
-  // @UseGuards(RolesGuard)
-  // @UserAuth()
-  // getUserTour(@Param("id", ParseIntPipe) id: number) {
-  //   return this.userService.getUserTour(id)
-  // }
+  @Get("/my-tours")
+  @Roles("user")
+  @UseGuards(RolesGuard)
+  @UserAuth()
+  getUserTour() {
+    return this.userService.getUserTour()
+  }
+
+
+  @Get("/my-transactions")
+  @Roles("user")
+  @UseGuards(RolesGuard)
+  @UserAuth()
+  getUserTransactions() {
+    return this.userService.getUserTransactions()
+  }
 
 
   @Put("/personal-info")

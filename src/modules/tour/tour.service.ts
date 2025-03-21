@@ -20,6 +20,7 @@ import {
 } from "src/common/utils/pagination.util";
 import { TourEntity } from "./entities/tour.entity";
 import { UserEntity } from "../user/entities/user.entity";
+import { TourStatusEnum } from "./enum/tour.enum";
 
 @Injectable()
 export class TourService {
@@ -95,6 +96,8 @@ export class TourService {
 
     const [tour, count] = await this.tourRepository
       .createQueryBuilder("tour")
+      .where('tour."reserved" < tour."capacity"')
+      .andWhere('tour."status" = :status', {status: TourStatusEnum.InProgress})
       .select([
         "tour.id",
         "tour.createdAt",

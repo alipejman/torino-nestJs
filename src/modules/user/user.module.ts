@@ -5,9 +5,12 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { ProfileEntity } from "./entities/profile.entity";
 import { UserEntity } from "./entities/user.entity";
 import { AuthModule } from "../auth/auth.module";
+import { ReserveEntity } from "../reserve/entities/reserve.entity";
+import { TourEntity } from "../tour/entities/tour.entity";
+import { TransactionEntity } from "../transaction/entities/transaction.entity";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ProfileEntity, UserEntity]), AuthModule],
+  imports: [TypeOrmModule.forFeature([ProfileEntity, UserEntity, ReserveEntity, TourEntity, TransactionEntity]), AuthModule],
   controllers: [UserController],
   providers: [UserService],
 })

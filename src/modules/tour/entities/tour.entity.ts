@@ -67,7 +67,7 @@ export class TourEntity extends BaseEntity {
   comments: CommentEntity[]
 
 
-  @OneToMany(() => ReserveEntity, (reserve) => reserve.tour,{nullable: true})
+  @OneToMany(() => ReserveEntity, (reserve) => reserve.tour)
   reservation: ReserveEntity[];
   
 }
