@@ -4,3 +4,7 @@ export enum ReserveStatus {
     Failed = "failed",
     Cancelled = "cancelled"
 }
+
+export enum TransactionType {
+    reserve= "رزرو تور گردشگری",
+}

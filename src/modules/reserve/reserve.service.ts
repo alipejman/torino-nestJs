@@ -17,7 +17,7 @@ import { Repository } from "typeorm";
 import { UserEntity } from "../user/entities/user.entity";
 import { ProfileEntity } from "../user/entities/profile.entity";
 import { RoleEntity } from "../auth/rbac/entity/role.entity";
-import { ReserveStatus } from "src/common/enums/tour-status.enum";
+import { ReserveStatus, TransactionType } from "src/common/enums/tour-status.enum";
 import { TourStatusEnum } from "../tour/enum/tour.enum";
 import { ReserveEntity } from "./entities/reserve.entity";
 import { generateExpirationDate } from "src/common/utils/function.util";
@@ -287,7 +287,7 @@ export class ReserveService {
       const newTransaction = await this.transactionRepository.create({
         amount: reserve.tour.price,
         orderNumber: randomInt(10000, 99999).toString(),
-        transactionType: "رزرو تور گردشگری",
+        transactionType: TransactionType.reserve,
         reservationId: reserve.id,
       });
       await this.transactionRepository.save(newTransaction);

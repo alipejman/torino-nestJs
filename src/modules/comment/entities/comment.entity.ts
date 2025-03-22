@@ -4,7 +4,7 @@ import { TourEntity } from "src/modules/tour/entities/tour.entity";
 import { UserEntity } from "src/modules/user/entities/user.entity";
 import { BlogEntity } from "src/modules/blog/entities/blog.entity";
 
-@Entity("commetns") 
+@Entity("comments") 
 export class CommentEntity extends BaseEntity {
     @Column()
     text: string;
